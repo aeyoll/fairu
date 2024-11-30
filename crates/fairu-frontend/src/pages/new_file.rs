@@ -1,5 +1,5 @@
-use yew::prelude::*;
 use crate::components::file_upload::FileUpload;
+use yew::prelude::*;
 
 pub struct NewFile;
 

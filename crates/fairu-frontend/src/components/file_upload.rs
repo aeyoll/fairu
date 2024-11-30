@@ -1,33 +1,32 @@
-use yew::prelude::*;
-use yew::{function_component, html, use_reducer, Html, Properties};
+use indexmap::indexmap;
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
-use indexmap::indexmap;
+use wasm_bindgen::JsValue;
+use web_sys::{File, HtmlInputElement};
+use yew::prelude::*;
+use yew::{function_component, html, use_reducer, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {}
 
 // Reducer's action
 enum FileAction {
-    SetName(String),
-    SetContent(String),
+    SetFile(File),
     SetExpireAfter(String),
     Submit,
 }
 
 // Reducer's state
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq)]
 struct FileState {
-    name: String,
-    content: String,
+    file: Option<File>,
     expire_after: String,
 }
 
 impl Default for FileState {
     fn default() -> Self {
         Self {
-            name: String::new(),
-            content: String::new(),
+            file: None,
             expire_after: "86400".to_string(),
         }
     }
@@ -38,12 +37,8 @@ impl Reducible for FileState {
 
     fn reduce(self: Rc<FileState>, action: Self::Action) -> Rc<FileState> {
         match action {
-            FileAction::SetName(name) => Rc::new(Self {
-                name,
-                ..self.as_ref().clone()
-            }),
-            FileAction::SetContent(content) => Rc::new(Self {
-                content,
+            FileAction::SetFile(file) => Rc::new(Self {
+                file: Some(file),
                 ..self.as_ref().clone()
             }),
             FileAction::SetExpireAfter(expire_after) => Rc::new(Self {
@@ -72,25 +67,19 @@ pub fn file_upload() -> Html {
     let update = {
         let file_data = file_data.clone();
 
-        Callback::from(move |action: FileAction| {
-            match action {
-                FileAction::SetName(name) => {
-                    file_data.dispatch(FileAction::SetName(name.clone()));
-                }
-                FileAction::SetContent(content) => {
-                    file_data.dispatch(FileAction::SetContent(content.clone()));
-                }
-                FileAction::SetExpireAfter(expire_after) => {
-                    file_data.dispatch(FileAction::SetExpireAfter(expire_after.clone()));
-                }
-                FileAction::Submit => {
-                    let name = file_data.name.clone();
-                    let content = file_data.content.clone();
-                    let expire_after = file_data.expire_after.clone();
+        Callback::from(move |action: FileAction| match action {
+            FileAction::SetFile(file) => {
+                file_data.dispatch(FileAction::SetFile(file.clone()));
+            }
+            FileAction::SetExpireAfter(expire_after) => {
+                file_data.dispatch(FileAction::SetExpireAfter(expire_after.clone()));
+            }
+            FileAction::Submit => {
+                let file = file_data.file.clone();
+                let expire_after = file_data.expire_after.clone();
 
-                    #[cfg(feature = "log")]
-                    log::info!("name: {:?}, content: {:?}, expire_after: {:?}", name, content, expire_after);
-                }
+                #[cfg(feature = "log")]
+                log::info!("file: {:?}, expire_after: {:?}", file, expire_after);
             }
         })
     };
@@ -100,7 +89,14 @@ pub fn file_upload() -> Html {
             <form>
                 <div class="mb-3">
                     <label class="form-label" for="content">{ "File" }</label>
-                    <input class="form-control" id="content" name="content" type="file" />
+                    <input class="form-control" id="content" name="content" type="file" onchange={
+                        let update = update.clone();
+                        Callback::from(move |e: Event| {
+                            let input: HtmlInputElement = e.target_unchecked_into();
+                            let file = File::from(input.files().unwrap().get(0).unwrap());
+                            update.emit(FileAction::SetFile(file));
+                        })
+                    } />
                 </div>
 
                 <div class="mb-3">
@@ -112,7 +108,7 @@ pub fn file_upload() -> Html {
                         onchange={
                             let update = update.clone();
                             Callback::from(move |e: Event| {
-                                let value = e.target_unchecked_into::<web_sys::HtmlInputElement>().value();
+                                let value = e.target_unchecked_into::<HtmlInputElement>().value();
                                 update.emit(FileAction::SetExpireAfter(value));
                             })
                         }>
