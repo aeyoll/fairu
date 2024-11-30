@@ -1,0 +1,30 @@
+[workspace]
+members = [
+    "crates/fairu-entity",
+    "crates/fairu-migration",
+    # "crates/fairu-backend",
+    # "crates/fairu-frontend",
+    # "crates/fairu-cli",
+]
+
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+[workspace.dependencies]
+fairu-entity = { path = "./crates/fairu-entity" }
+fairu-migration = { path = "./crates/fairu-migration" }
+# fairu-backend = { path = "./crates/fairu-backend" }
+# fairu-frontend = { path = "./crates/fairu-frontend" }
+# fairu-cli = { path = "./crates/fairu-cli" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.128"
+
+[profile.release]
+panic = 'abort'
+codegen-units = 1
+opt-level = 'z'
+lto = true
+strip = true
