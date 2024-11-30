@@ -797,9 +797,12 @@ dependencies = [
 name = "fairu-frontend"
 version = "0.1.0"
 dependencies = [
+ "indexmap",
  "log",
+ "serde",
  "wasm-bindgen",
  "wasm-logger",
+ "web-sys",
  "yew",
  "yew-router",
 ]

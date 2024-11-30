@@ -1,4 +1,5 @@
 use yew::prelude::*;
+use crate::components::file_upload::FileUpload;
 
 pub struct NewFile;
 
@@ -16,6 +17,8 @@ impl Component for NewFile {
                 <h1 class="title">
                     { "New file" }
                 </h1>
+
+                <FileUpload />
             </section>
         }
     }
