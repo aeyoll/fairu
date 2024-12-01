@@ -1,3 +1,5 @@
+use fairu_entity::fairu::Model;
+use gloo_net::http::Request;
 use indexmap::indexmap;
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
@@ -80,6 +82,26 @@ pub fn file_upload() -> Html {
 
                 #[cfg(feature = "log")]
                 log::info!("file: {:?}, expire_after: {:?}", file, expire_after);
+
+                // Send file to backend
+                wasm_bindgen_futures::spawn_local(async move {
+                    let resp = Request::post("http://localhost:8000/file")
+                        .header("Content-Type", "application/json")
+                        .body(JsValue::from_serde(&file).unwrap())
+                        .send()
+                        .await
+                        .unwrap();
+
+                    let resp: Model = resp.json().await.unwrap();
+                });
+
+                // Reset file data
+                file_data.dispatch(FileAction::SetFile(None));
+
+                // Reset expire_after
+                if expire_after == "0" {
+                    file_data.dispatch(FileAction::SetExpireAfter("86400".to_string()));
+                }
             }
         })
     };
