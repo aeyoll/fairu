@@ -4,16 +4,21 @@ use indexmap::indexmap;
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 use wasm_bindgen::JsValue;
-use web_sys::{File, HtmlInputElement};
+use web_sys::{window, File, FormData, HtmlInputElement};
 use yew::prelude::*;
 use yew::{function_component, html, use_reducer, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {}
 
+#[derive(Deserialize, Serialize)]
+pub struct FileUploadResponse {
+    pub uuid: String,
+}
+
 // Reducer's action
 enum FileAction {
-    SetFile(File),
+    SetFile(Option<File>),
     SetExpireAfter(String),
     Submit,
 }
@@ -40,7 +45,7 @@ impl Reducible for FileState {
     fn reduce(self: Rc<FileState>, action: Self::Action) -> Rc<FileState> {
         match action {
             FileAction::SetFile(file) => Rc::new(Self {
-                file: Some(file),
+                file,
                 ..self.as_ref().clone()
             }),
             FileAction::SetExpireAfter(expire_after) => Rc::new(Self {
@@ -80,35 +85,57 @@ pub fn file_upload() -> Html {
                 let file = file_data.file.clone();
                 let expire_after = file_data.expire_after.clone();
 
-                #[cfg(feature = "log")]
-                log::info!("file: {:?}, expire_after: {:?}", file, expire_after);
+                // If file is not set, do nothing
+                if file.is_none() {
+                    return;
+                }
 
-                // Send file to backend
+                // Send file to backend using gloo_net and multipart async
                 wasm_bindgen_futures::spawn_local(async move {
-                    let resp = Request::post("http://localhost:8000/file")
-                        .header("Content-Type", "application/json")
-                        .body(JsValue::from_serde(&file).unwrap())
+                    let file = file.unwrap();
+
+                    let form_data = FormData::new().unwrap();
+                    form_data
+                        .append_with_blob_and_filename("file", &file, &file.name())
+                        .unwrap();
+                    form_data
+                        .append_with_str("expire_after", &expire_after.to_string())
+                        .unwrap();
+
+                    let response = Request::post("http://localhost:8080/api/files")
+                        .header("Content-Type", "multipart/form-data")
+                        .body(form_data)
+                        .unwrap()
                         .send()
                         .await
                         .unwrap();
 
-                    let resp: Model = resp.json().await.unwrap();
+                    let response: FileUploadResponse = response.json().await.unwrap();
+
+                    // Redirect to file page
+                    window()
+                        .unwrap()
+                        .location()
+                        .set_href(&format!("/files/{}", response.uuid))
+                        .unwrap();
                 });
 
-                // Reset file data
+                // Reset state
                 file_data.dispatch(FileAction::SetFile(None));
-
-                // Reset expire_after
-                if expire_after == "0" {
-                    file_data.dispatch(FileAction::SetExpireAfter("86400".to_string()));
-                }
+                file_data.dispatch(FileAction::SetExpireAfter("86400".to_string()));
             }
         })
     };
 
     html! {
         <div>
-            <form>
+            <form onsubmit={
+                let update = update.clone();
+                Callback::from(move |e: SubmitEvent| {
+                    e.prevent_default();
+                    update.emit(FileAction::Submit);
+                })
+            } enctype="multipart/form-data">
                 <div class="mb-3">
                     <label class="form-label" for="content">{ "File" }</label>
                     <input class="form-control" id="content" name="content" type="file" onchange={
@@ -116,7 +143,7 @@ pub fn file_upload() -> Html {
                         Callback::from(move |e: Event| {
                             let input: HtmlInputElement = e.target_unchecked_into();
                             let file = File::from(input.files().unwrap().get(0).unwrap());
-                            update.emit(FileAction::SetFile(file));
+                            update.emit(FileAction::SetFile(Some(file)));
                         })
                     } />
                 </div>
