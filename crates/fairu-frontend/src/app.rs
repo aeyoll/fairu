@@ -55,18 +55,17 @@ impl App {
                 <div class="mx-auto max-w-3xl px-2 sm:px-6 lg:px-8">
                     <div class="relative flex h-16 items-center justify-between">
                         <div class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
-                            <div class="flex flex-shrink-0 items-center">
+                            <div class="flex flex-shrink-0 items-center space-x-4">
                                 <img src="/static/logo.svg" alt="Fairu logo" width="24" height="24" />
+                                <RouteLink to={Route::NewFile}>
+                                    <div class="flex items-center text-white gap-2">
+                                        <img src="/static/plus.svg" alt="New file" width="18" height="18" />
+                                        { "New file" }
+                                    </div>
+                                </RouteLink>
                             </div>
-                            <div class="hidden sm:ml-6 sm:block">
+                            <div class="hidden  sm:block sm:ml-auto">
                                 <div class="flex space-x-4">
-                                    <RouteLink to={Route::NewFile}>
-                                        <div class="flex items-center text-white gap-2">
-                                            <img src="/static/plus.svg" alt="New file" width="18" height="18" />
-                                            { "New file" }
-                                        </div>
-                                    </RouteLink>
-
                                     <RouteLink to={Route::About}>
                                         <div class="flex items-center text-white gap-2">
                                             <img src="/static/info.svg" alt="About" width="18" height="18" />
