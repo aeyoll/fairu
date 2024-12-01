@@ -21,7 +21,7 @@ pub fn route_link(props: &Props) -> Html {
             "text-sm",
             "font-medium",
             "text-white",
-            "bg-gray-900"
+            "bg-green-900"
         )
     } else {
         classes!(

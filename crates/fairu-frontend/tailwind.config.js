@@ -7,9 +7,6 @@ module.exports = {
     ],
     theme: {
         extend: {
-            fontFamily: {
-                'sans': ['Menlo', 'Monaco', 'Consolas', '"Liberation Mono"', '"Courier New"', 'monospace'],
-            },
             fontSize: {
                 'xs': '0.75rem',
                 'sm': '0.875rem',

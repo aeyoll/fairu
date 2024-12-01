@@ -82,9 +82,9 @@
 }
 
 .btn-primary {
-  @apply bg-indigo-600;
-  @apply hover:bg-indigo-500;
-  @apply focus-visible:outline-indigo-600;
-  @apply dark:bg-indigo-700;
-  @apply dark:hover:bg-indigo-600;
+  @apply bg-green-800;
+  @apply hover:bg-green-900;
+  @apply focus-visible:outline-green-900;
+  @apply dark:bg-green-800;
+  @apply dark:hover:bg-green-900;
 }
