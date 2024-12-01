@@ -15,20 +15,9 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Fairu::Uuid).string().not_null())
                     .col(ColumnDef::new(Fairu::Name).string().not_null())
                     .col(ColumnDef::new(Fairu::Content).string().not_null())
-                    .col(
-                        ColumnDef::new(Fairu::CreateTime)
-                            .date_time()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(Fairu::ExpireAfter)
-                            .integer()
-                            .not_null(),
-                    )
-                    .col(
-                        ColumnDef::new(Fairu::ExpireTime)
-                            .date_time(),
-                    )
+                    .col(ColumnDef::new(Fairu::CreateTime).date_time().not_null())
+                    .col(ColumnDef::new(Fairu::ExpireAfter).integer().not_null())
+                    .col(ColumnDef::new(Fairu::ExpireTime).date_time())
                     .to_owned(),
             )
             .await
